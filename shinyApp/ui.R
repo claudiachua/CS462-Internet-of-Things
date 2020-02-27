@@ -4,15 +4,16 @@
 #                                                                                         #
 ###########################################################################################
 
-packages = c('plotly','shiny','shiny.semantic',
-             'semantic.dashboard','ggplot2','png','ggpubr')
+library(plotly)
+library(shiny)
+library(shiny.semantic)
+library(semantic.dashboard)
+library(ggplot2)
+library(png)
+library(ggpubr)
+library(RPostgres)
+library(DT)
 
-for (p in packages){
-  if(!require(p, character.only = T)){
-    install.packages(p)
-  }
-  library(p,character.only = T)
-}
 ###########################################################################################
 #                                                                                         #
 #                                    USER-INTERFACE CODES                                 #
@@ -35,7 +36,8 @@ ui <- dashboardPage(
           column(width = 16,
               title = "R77 Real-Time Occupancy",
               color = "black", ribbon = FALSE, title_side = "top", collapsible = FALSE,
-              plotOutput("heatmap"))
+              plotOutput("heatmap")
+          )
         )
       )
     )

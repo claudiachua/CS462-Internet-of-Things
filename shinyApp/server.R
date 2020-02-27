@@ -4,30 +4,41 @@
 #                                                                                         #
 ###########################################################################################
 
-packages = c('plotly','shiny','shiny.semantic',
-             'semantic.dashboard','ggplot2','png','ggpubr')
+library(plotly)
+library(shiny)
+library(shiny.semantic)
+library(semantic.dashboard)
+library(ggplot2)
+library(png)
+library(ggpubr)
+library(RPostgres)
+library(DT)
+library(dplyr)
 
-for (p in packages){
-  if(!require(p, character.only = T)){
-    install.packages(p)
-  }
-  library(p,character.only = T)
-}
-
+###########################################################################################
+#                                                                                         #
+#                                 IMPORTING HEATMAP BG                                    #
+#                                                                                         #
+###########################################################################################
 imgfile <- system.file(file.path("r77_base_comp.png"), package = "ggpubr")
 
 img <- png::readPNG("r77_base_comp.png")
 
-ids <- factor(c("A","B","C","D","E","F","G","H","1","2","3","4","5","6","7","8"))
+###########################################################################################
+#                                                                                         #
+#                                 CONNECT TO DATABASE                                     #
+#                                                                                         #
+###########################################################################################
 
-values <- data.frame(
-  id = ids,
-  value = c("X","X","O","X","O","X","X","X","X","O","X","O","O","X","X","X")
-)
+# Database Connection 
+db <- 'R77_OCCUPANCY'  #provide the name of your db
+host_db <- '18.141.11.6'   
+db_port <- '5432'  # or any other port specified by the DBA
+db_user <- 'postgres'  
+db_password <- 'iott1t5'
 
-positions <- read.csv("r77_polygons_comb.csv")
-
-datapoly <- merge(values, positions, by = c("id"))
+#Connecting PSQL DB
+con <- dbConnect(RPostgres::Postgres(), dbname = db, host=host_db, port=db_port, user=db_user, password=db_password)
 
 ###########################################################################################
 #                                                                                         #
@@ -37,12 +48,27 @@ datapoly <- merge(values, positions, by = c("id"))
 # Define server logic 
 server <- function(input, output, session) {
   
+
+  positions <- read.csv("r77_polygons_comb.csv")
+  
+  datapoly <- reactive({
+    invalidateLater(5 * 1000, session)
+    connection_sqlInput <- 'select ID,OccStatus from curr_occ'
+    connection_data <- dbGetQuery(con, connection_sqlInput)
+    connection_data$id <- as.character(connection_data$id)
+    connection_data$occstatus <- as.factor(connection_data$occstatus)
+    connection_data <- merge(connection_data,positions, by = c("id"))
+    connection_data[
+      order( connection_data[,1], connection_data[,5] ),
+      ]
+  })
+  
   output$heatmap <- renderPlot({
-    ggplot(datapoly, aes(x = x, y = y), height = 800, width=1200) +
+    ggplot(datapoly(), aes(x = x, y = y,fill = occstatus), height = 800, width=1200) +
       xlim(0, 900)+
       ylim(0, 600)+
       background_image(img)+
-      geom_polygon(aes(fill = value, group = id),alpha=0.5) +
+      geom_polygon(aes(group = id),alpha=0.8) +
       theme(axis.title.x=element_blank(),
             axis.text.x=element_blank(),
             axis.ticks.x=element_blank(),
@@ -51,6 +77,7 @@ server <- function(input, output, session) {
             axis.ticks.y=element_blank()) +
       scale_x_continuous(limits = c(0,900),expand = c(0, 0)) + 
       scale_y_continuous(limits = c(0,601),expand = c(0, 0)) +
-      coord_equal()
+      coord_equal() +
+      scale_fill_manual(values = c("#D0E6A5", "#FFDD94", "#FA897B"),name= "Status", labels = c("Not In Use","Idle","In Use"))
   })
 }
