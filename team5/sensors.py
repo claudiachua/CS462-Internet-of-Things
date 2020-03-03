@@ -26,118 +26,38 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 '''
-import time, grovepi, enum
+import time, grovepi, json
 from grove.i2c import Bus
 from datetime import datetime, timedelta
 import numpy as np
 import paho.mqtt.client as mqtt
+import OccupancyStatus, MPR121
 
-
-TOUCH_SENSOR_DEFAULT_ADDR                 = 0x5b
-
-MODE_CONFIG_REG_ADDR                      = 0x5e
-GLOBAL_PARAM_REG_ADDR_L                   = 0x5c
-TOUCH_STATUS_REG_ADDR_L                   = 0x00
-SET_DEBOUNCE_REG_ADDR                     = 0x5b
-
-FILTERED_DATA_REG_START_ADDR_L            = 0x04
-CHANNEL_NUM                               = 12
-
-STOP_MODE                                 = 0
-NORMAL_MODE                               = 0x3c
-
-class Grove12KeyCapTouchMpr121():
-    def __init__(self,bus_num = 1,addr = TOUCH_SENSOR_DEFAULT_ADDR):
-        self.bus = Bus(bus_num)
-        self.addr = addr
-        self.threshold = 0
-        self.touch_flag = [0]*CHANNEL_NUM
-
-    def sensor_init(self):
-        self._set_mode(STOP_MODE)
-        data = [0x23,0x10]
-        self._set_global_param(data)
-        self._set_debounce(0x22)
-        self._set_mode(NORMAL_MODE)
-
-    def set_threshold(self,threshold):
-        self.threshold = threshold
-
-    def wait_for_ready(self):
-        time.sleep(.2)
-
-    def _set_mode(self,mode):
-        self.bus.write_byte_data(self.addr,MODE_CONFIG_REG_ADDR,mode)
-    
-    def _set_global_param(self,data):
-        self.bus.write_i2c_block_data(self.addr,GLOBAL_PARAM_REG_ADDR_L,data)
-    
-    def _set_debounce(self,data):
-        self.bus.write_byte_data(self.addr,SET_DEBOUNCE_REG_ADDR,data)
-
-    def _check_status_register(self):
-        data_status = self.bus.read_i2c_block_data(self.addr,TOUCH_STATUS_REG_ADDR_L,2)
-        return data_status
-    
-    def get_filtered_touch_data(self,sensor_status):
-        result_value = []
-        for i in range(CHANNEL_NUM):
-            time.sleep(.01)
-            if(sensor_status & (1<<i)):
-                channel_data = self.bus.read_i2c_block_data(self.addr,FILTERED_DATA_REG_START_ADDR_L+2*i,2)
-                result_value.append(channel_data[0] | channel_data[1]<<8 )
-            else:
-                result_value.append(0)
-        return result_value
-
-    def listen_sensor_status(self):
-        data = self._check_status_register()
-        touch_status = data[0] | (data[1]<<8) 
-        touch_result_value = self.get_filtered_touch_data(touch_status)
-
-        for i in range(CHANNEL_NUM):
-            if(touch_result_value[i] < self.threshold ):
-                touch_result_value[i] = 0
-        return touch_result_value
-    
-    def parse_and_print_result(self,result):
-        for i in range(CHANNEL_NUM):
-            if(result[i] != 0):
-                if(0 == self.touch_flag[i]):
-                    self.touch_flag[i] = 1
-                    print("Channel %d is pressed,value is %d" %(i,result[i]))
-            else:
-                if(1 == self.touch_flag[i]):
-                    self.touch_flag[i] = 0
-                    print("Channel %d is released,value is %d" %(i,result[i]))
-        
-class SeatStatus(enum.Enum):
-    Unoccupied = 1
-    Occupied = 2
-    Hogged = 3
-
-mpr121 = Grove12KeyCapTouchMpr121() 
 def main():
+    # Instantiate Capacitive Sensor object
+    mpr121 = MPR121.MPR121()
     # Admin attributes
     SEAT_NUMBER = 4
 
     # Capacitive Sensor Setup
     CHANNEL_NUM = 11
     SD_THRESHOLD = 5
-    MEAN_THRESHOLD = 135
+    MEAN_THRESHOLD = 120
     HOGGING_THRESHOLD = 100
     mpr121.sensor_init()
     mpr121.set_threshold(0x60)
     mpr121.wait_for_ready()
     readings = np.array([])
-    window = 10
+    window = 50
     status = "Unoccupied"
     change = False
 
     # PIR Motion Sensor Setup
     pir_sensor = 8
+    led_port = 4
     motion = 0
     grovepi.pinMode(pir_sensor,"INPUT")
+    grovepi.pinMode(led_port, "OUTPUT")
     last_motion = datetime.now()
     max_delta = timedelta(seconds=3)
     # max_delta = timedelta(hours=2)
@@ -146,15 +66,16 @@ def main():
     client = mqtt.Client(client_id="Grp4")
     client.username_pw_set(username="iotcollabhuat", password="iott1t5")
     client.connect("18.141.11.6")
-    client.publish("test", "randylovesyellow")
+    # client.publish("test", "randylovesyellow")
 
+    print("Starting monitoring")
     while True:
         try:
             original_status = status
             now = datetime.now()
             r = mpr121.listen_sensor_status()
             r = r[CHANNEL_NUM]
-
+            # print(r)
             # Add newest reading to array
             readings = np.append(readings, [r])
 
@@ -168,6 +89,8 @@ def main():
             # Get mean and standard deviation
             average = np.mean(readings)
             sd = np.std(readings)
+            print(average)
+            print(sd)
             # If std. deviation > threshold, means change in state
             # if sd >= SD_THRESHOLD:
             #     change = True
@@ -202,8 +125,10 @@ def main():
             # change in statuses must be sent to server via MQTT
             if change:
                 print("MQTT code here")
+                # mq_msg = {'id': SEAT_NUMBER, 'timestamp': now, 'occStatus': OccupancyStatus[status].value}
+                # client.publish("hotdesk", json.dumps(mq_msg))
             change = False
-            time.sleep(1)
+            time.sleep(0.2)
             
         except IOError:
             print("IO Error")
