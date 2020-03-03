@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 ## License
@@ -42,7 +42,7 @@ def main():
     # Capacitive Sensor Setup
     CHANNEL_NUM = 11
     SD_THRESHOLD = 5
-    MEAN_THRESHOLD = 120
+    EMPTY_THRESHOLD = 120
     HOGGING_THRESHOLD = 100
     mpr121.sensor_init()
     mpr121.set_threshold(0x60)
@@ -63,7 +63,7 @@ def main():
     # max_delta = timedelta(hours=2)
 
     #MQTT Client setup
-    client = mqtt.Client(client_id="Grp4")
+    client = mqtt.Client(client_id="T5")
     client.username_pw_set(username="iotcollabhuat", password="iott1t5")
     client.connect("18.141.11.6")
     # client.publish("test", "randylovesyellow")
@@ -73,15 +73,16 @@ def main():
         try:
             original_status = status
             now = datetime.now()
-            r = mpr121.listen_sensor_status()
-            r = r[CHANNEL_NUM]
-            # print(r)
+            readings_arr = mpr121.listen_sensor_status()
+            r = readings_arr[CHANNEL_NUM]
+            
             # Add newest reading to array
             readings = np.append(readings, [r])
 
             # If less than required window of readings, continue taking
             if len(readings) < window:
                 continue
+
             # Remove oldest reading
             readings = np.delete(readings, 0)
             print(readings)
@@ -89,8 +90,8 @@ def main():
             # Get mean and standard deviation
             average = np.mean(readings)
             sd = np.std(readings)
-            print(average)
-            print(sd)
+            # print(average)
+            # print(sd)
             # If std. deviation > threshold, means change in state
             # if sd >= SD_THRESHOLD:
             #     change = True
@@ -104,31 +105,43 @@ def main():
                 else:
                     print ('-')
 
-            if average > MEAN_THRESHOLD:
+            if average > EMPTY_THRESHOLD:
                 status = "Unoccupied"
             elif average > HOGGING_THRESHOLD:
-                status = "Items on desk"
+                # status = "Items on desk"
+                status = "Occupied"
             else:
-                status = "Laptop on desk"
+                # status = "Laptop on desk"
+                status = "Occupied"
 
             time_difference = now - last_motion
             # if the time difference if greater than 2 hours and the status is not unoccupied , means hogging
             if time_difference >= max_delta and status != "Unoccupied":
-                status = "Hogging"
-            else:
-                print("we gucci")
+                status = "Hogged"
                 
             print(status)
+            print(original_status)
 
-            if original_status != status:
+            if status != original_status:
                 change = True
             # change in statuses must be sent to server via MQTT
             if change:
                 print("MQTT code here")
-                # mq_msg = {'id': SEAT_NUMBER, 'timestamp': now, 'occStatus': OccupancyStatus[status].value}
-                # client.publish("hotdesk", json.dumps(mq_msg))
+                # msg = {'id': SEAT_NUMBER, 'timestamp': str(now), 'occStatus': OccupancyStatus.OccupancyStatus[status].value}
+                # msg = json.dumps(msg)
+                msg = "['" + str(SEAT_NUMBER) +"','" + str(now) + "','" + str(OccupancyStatus.OccupancyStatus[status].value) + "']"
+                print(msg)
+                client.publish("hd/status", msg)
+                print("Data sent")
+                msg = ""
+                
             change = False
-            time.sleep(0.2)
+            time.sleep(0.25)
+
+            if status == "Hogged" or status == "Unoccupied":
+                grovepi.digitalWrite(led_port, 255)
+            else:
+                grovepi.digitalWrite(led_port, 0)
             
         except IOError:
             print("IO Error")

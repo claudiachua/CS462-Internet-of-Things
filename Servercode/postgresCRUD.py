@@ -30,3 +30,30 @@ def insert_motion_details(mr_id,mr_ts,mr_status):
         if (conn):
             cursor.close()
             connection.close()
+
+def insert_hd_details(hd_id,hd_ts,hd_status):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        insert_query = """ INSERT INTO hd_occ_hist(hotdeskid,hdocctimestamp,occstatus) VALUES (%s,%s,%s)"""
+        
+        to_insert = (hd_id,hd_ts,hd_status)
+        
+        cursor.execute(insert_query,to_insert)
+        conn.commit()
+        
+        f = open("successful.txt","a")
+        f.write("Successful inserting hd occ status @ " + str(datetime.datetime.now()))
+        f.close()
+        
+    except (Exception, psycopg2.Error) as error:
+        print(str(error))
+        f = open("error.txt","a")
+        f.write("Error inserting hotdesk occ status @ " + str(datetime.datetime.now()))
+        f.close()
+            
+    finally:
+        if (conn):
+            cursor.close()
+            connection.close()
