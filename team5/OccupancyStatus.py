@@ -1,6 +1,6 @@
 import enum
 
 class OccupancyStatus(enum.Enum):
-    Unoccupied = 1
+    Unoccupied = 0
     Occupied = 2
-    Hogged = 3
+    Hogged = 1
