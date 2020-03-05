@@ -41,7 +41,7 @@ client.loop_start()                        #start the loop
 while Connected != True:    #Wait for connection
     time.sleep(0.1)
 
-client.subscribe("mr/motion")
+client.subscribe("mr/tof")
 
 try:
     while True:
