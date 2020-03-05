@@ -17,13 +17,40 @@ def insert_motion_details(mr_id,mr_ts,mr_status):
         conn.commit()
         
         f = open("successful.txt","a")
-        f.write("Successful inserting mr occ status @ " + str(datetime.datetime.now()))
+        f.write("\n Successful inserting mr occ status @ " + str(datetime.datetime.now()))
         f.close()
         
     except (Exception, psycopg2.Error) as error:
         print(str(error))
         f = open("error.txt","a")
-        f.write("Error inserting meeting room occ status @ " + str(datetime.datetime.now()))
+        f.write("\n Error inserting mr occ status @ " + str(datetime.datetime.now()))
+        f.close()
+            
+    finally:
+        if (conn):
+            cursor.close()
+            connection.close()
+            
+def insert_tof_details(mr_id,mr_ts,mr_count):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        insert_query = """ INSERT INTO mr_count_hist(meetingroomid,mrcounttimestamp,count) VALUES (%s,%s,%s)"""
+        
+        to_insert = (mr_id,mr_ts,mr_count)
+        
+        cursor.execute(insert_query,to_insert)
+        conn.commit()
+        
+        f = open("successful.txt","a")
+        f.write("\n Successful inserting mr occ count @ " + str(datetime.datetime.now()))
+        f.close()
+        
+    except (Exception, psycopg2.Error) as error:
+        print(str(error))
+        f = open("error.txt","a")
+        f.write("\n Error inserting mr occ count @ " + str(datetime.datetime.now()))
         f.close()
             
     finally:
@@ -44,13 +71,13 @@ def insert_hd_details(hd_id,hd_ts,hd_status):
         conn.commit()
         
         f = open("successful.txt","a")
-        f.write("Successful inserting hd occ status @ " + str(datetime.datetime.now()))
+        f.write("\n Successful inserting hd occ status @ " + str(datetime.datetime.now()))
         f.close()
         
     except (Exception, psycopg2.Error) as error:
         print(str(error))
         f = open("error.txt","a")
-        f.write("Error inserting hotdesk occ status @ " + str(datetime.datetime.now()))
+        f.write("\n Error inserting hotdesk occ status @ " + str(datetime.datetime.now()))
         f.close()
             
     finally:

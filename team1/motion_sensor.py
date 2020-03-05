@@ -90,13 +90,16 @@ while True:
         time.sleep(1)
         if time_in_sec==10:
             time_in_sec=0
+            now = str(datetime.datetime.now())
             if  motion_counter>=2:
                     #send to topic
-                    now = str(datetime.datetime.now())
-                    msg = "['D','" + now + "','2']"
-                    publish_motion_results(client,msg)
-                    print("Data sent")
-                    motion_counter = 0
+                msg = "['E','" + now + "','2']"
+            else:
+                msg = "['E','" + now + "',''0]"
+                
+            publish_motion_results(client,msg)
+            print("Data sent")
+            motion_counter = 0
     except IOError:
         write_error()
 
