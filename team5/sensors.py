@@ -75,10 +75,8 @@ def main():
             now = datetime.now()
             readings_arr = mpr121.listen_sensor_status()
             r = readings_arr[CHANNEL_NUM]
-            
             # Add newest reading to array
             readings = np.append(readings, [r])
-
             # If less than required window of readings, continue taking
             if len(readings) < window:
                 continue
@@ -126,7 +124,6 @@ def main():
                 change = True
             # change in statuses must be sent to server via MQTT
             if change:
-                print("MQTT code here")
                 # msg = {'id': SEAT_NUMBER, 'timestamp': str(now), 'occStatus': OccupancyStatus.OccupancyStatus[status].value}
                 # msg = json.dumps(msg)
                 msg = "['" + str(SEAT_NUMBER) +"','" + str(now) + "','" + str(OccupancyStatus.OccupancyStatus[status].value) + "']"
@@ -136,12 +133,13 @@ def main():
                 msg = ""
                 
             change = False
-            time.sleep(0.25)
 
             if status == "Hogged" or status == "Unoccupied":
                 grovepi.digitalWrite(led_port, 255)
             else:
                 grovepi.digitalWrite(led_port, 0)
+
+            time.sleep(0.25)
             
         except IOError:
             print("IO Error")
