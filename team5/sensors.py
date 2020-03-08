@@ -32,12 +32,15 @@ from datetime import datetime, timedelta
 import numpy as np
 import paho.mqtt.client as mqtt
 import OccupancyStatus, MPR121
+import heartbeat
 
 def main():
     # Instantiate Capacitive Sensor object
     mpr121 = MPR121.MPR121()
     # Admin attributes
     SEAT_NUMBER = 4
+    start_time = datetime.now()
+    heartbeat_delta = timedelta(minutes=15)
 
     # Capacitive Sensor Setup
     CHANNEL_NUM = 11
@@ -73,6 +76,12 @@ def main():
         try:
             original_status = status
             now = datetime.now()
+            # Heartbeat logic
+            if (now - start_time) >= heartbeat_delta:
+                heartbeat.send_heartbeat(client, SEAT_NUMBER)
+                start_time = now
+            # Capacitive logic
+
             readings_arr = mpr121.listen_sensor_status()
             r = readings_arr[CHANNEL_NUM]
             # Add newest reading to array
@@ -83,7 +92,7 @@ def main():
 
             # Remove oldest reading
             readings = np.delete(readings, 0)
-            print(readings)
+            # print(readings)
             
             # Get mean and standard deviation
             average = np.mean(readings)
@@ -98,10 +107,8 @@ def main():
             motion=grovepi.digitalRead(pir_sensor)
             if motion == 0 or motion == 1:	# check if reads were 0 or 1 it can be 255 also because of IO Errors so remove those values
                 if motion == 1:
-                    print ('Motion Detected')
+                    # print ('Motion Detected')
                     last_motion = datetime.now()
-                else:
-                    print ('-')
 
             if average > EMPTY_THRESHOLD:
                 status = "Unoccupied"
@@ -117,8 +124,8 @@ def main():
             if time_difference >= max_delta and status != "Unoccupied":
                 status = "Hogged"
                 
-            print(status)
-            print(original_status)
+            # print(status)
+            # print(original_status)
 
             if status != original_status:
                 change = True
