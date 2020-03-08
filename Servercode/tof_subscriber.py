@@ -19,9 +19,9 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, message):
     msg = str(message.payload.decode("utf-8"))
     msg_list = ast.literal_eval(msg)
-    mr_id = msg_list[0]
-    mr_ts = msg_list[1]
-    mr_count = int(msg_list[2])
+    mr_id = "E"
+    mr_ts = msg_list[0]
+    mr_count = int(msg_list[1])
     insert_tof_details(mr_id,mr_ts,mr_count)
  
 Connected = False #global variable for the state of the connection
@@ -41,7 +41,7 @@ client.loop_start()                        #start the loop
 while Connected != True:    #Wait for connection
     time.sleep(0.1)
 
-client.subscribe("mr/motion")
+client.subscribe("mr/tof")
 
 try:
     while True:
