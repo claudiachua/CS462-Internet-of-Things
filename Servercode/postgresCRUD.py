@@ -1,5 +1,6 @@
 import psycopg2
 import datetime
+import logging
 
 def get_connection():
     return psycopg2.connect(user="mqttuser", password="iott1t5", host="127.0.0.1", port="5432", database="R77_OCCUPANCY")
@@ -16,15 +17,12 @@ def insert_motion_details(mr_id,mr_ts,mr_status):
         cursor.execute(insert_query,to_insert)
         conn.commit()
         
-        f = open("successful.txt","a")
-        f.write("\n Successful inserting mr occ status @ " + str(datetime.datetime.now()))
-        f.close()
+        logging.basicConfig(filename='mr_motion_db_insert.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+        logging.info("mr motion data inserted successfully at " str(datetune.datetime.now()))
         
     except (Exception, psycopg2.Error) as error:
-        print(str(error))
-        f = open("error.txt","a")
-        f.write("\n Error inserting mr occ status @ " + str(datetime.datetime.now()))
-        f.close()
+        logging.basicConfig(filename='mr_motion_err.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+        logging.error("Error inserting mr tof data at " str(datetune.datetime.now()))
             
     finally:
         if (conn):
@@ -43,15 +41,12 @@ def insert_tof_details(mr_id,mr_ts,mr_count):
         cursor.execute(insert_query,to_insert)
         conn.commit()
         
-        f = open("successful.txt","a")
-        f.write("\n Successful inserting mr occ count @ " + str(datetime.datetime.now()))
-        f.close()
+        logging.basicConfig(filename='mr_tof_db_insert.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+        logging.info("mr tof data inserted successfully at " str(datetune.datetime.now()))
         
     except (Exception, psycopg2.Error) as error:
-        print(str(error))
-        f = open("error.txt","a")
-        f.write("\n Error inserting mr occ count @ " + str(datetime.datetime.now()))
-        f.close()
+        logging.basicConfig(filename='mr_tof_err.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+        logging.error("Error inserting mr tof data at " str(datetune.datetime.now()))
             
     finally:
         if (conn):
@@ -70,15 +65,12 @@ def insert_hd_details(hd_id,hd_ts,hd_status):
         cursor.execute(insert_query,to_insert)
         conn.commit()
         
-        f = open("successful.txt","a")
-        f.write("\n Successful inserting hd occ status @ " + str(datetime.datetime.now()))
-        f.close()
+        logging.basicConfig(filename='hd_db_insert.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+        logging.info("hd data inserted successfully into the database at " str(datetune.datetime.now()))
         
     except (Exception, psycopg2.Error) as error:
-        print(str(error))
-        f = open("error.txt","a")
-        f.write("\n Error inserting hotdesk occ status @ " + str(datetime.datetime.now()))
-        f.close()
+        logging.basicConfig(filename='hd_err.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+        logging.error("Error inserting hd data at " str(datetune.datetime.now()))
             
     finally:
         if (conn):
