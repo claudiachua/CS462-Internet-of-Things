@@ -34,6 +34,12 @@ def insert_tof_details(mr_id,mr_ts,mr_count):
         conn = get_connection()
         cursor = conn.cursor()
         
+        retrieve_query = """SELECT * from mr_count_hist where meetingroomid= %s DESC LIMIT 1"""      
+        cursor.execute(retrieve_query,(mr_id,))
+        count_record = cursor.fetchall()
+        for count in count_records:
+            mr_count += count[2]
+        
         insert_query = """ INSERT INTO mr_count_hist(meetingroomid,mrcounttimestamp,count) VALUES (%s,%s,%s)"""
         
         to_insert = (mr_id,mr_ts,mr_count)
@@ -91,15 +97,12 @@ def update_hd_hb(t_id, timestamp):
         cursor.execute(update_query,to_insert)
         conn.commit()
         
-        f = open("successful.txt","a")
-        f.write("\n Successful updating heartbeat @ " + str(datetime.datetime.now()))
-        f.close()
+        logging.basicConfig(filename='hb_db_insert.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+        logging.info("hb data inserted successfully into the database at " str(datetune.datetime.now()))
         
     except (Exception, psycopg2.Error) as error:
-        print(str(error))
-        f = open("error.txt","a")
-        f.write("\n Error updating heartbeat @ " + str(datetime.datetime.now()))
-        f.close()
+        logging.basicConfig(filename='hb_err.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+        logging.error("Error inserting hb data at " str(datetune.datetime.now()))
             
     finally:
         if (conn):
