@@ -107,4 +107,4 @@ def update_hd_hb(t_id, timestamp):
     finally:
         if (conn):
             cursor.close()
-            connection.close()        x
+            connection.close()        
