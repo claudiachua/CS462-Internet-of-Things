@@ -3,7 +3,7 @@ import paho.mqtt.client as mqttClient
 import time, ast
  
 def on_connect(client, userdata, flags, rc):
- 
+
     if rc == 0:
  
         print("Connected to broker")
@@ -18,10 +18,9 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, message):
     msg = str(message.payload.decode("utf-8"))
     msg_list = ast.literal_eval(msg)
-    mr_id = msg_list[0]
-    mr_ts = msg_list[1]
-    mr_status = int(msg_list[2])
-    insert_hd_details(mr_id,mr_ts,mr_status)    
+    id = msg_list[0]
+    ts = msg_list[1]
+    update_hd_hb(id, ts)   
 
 Connected = False #global variable for the state of the connection
 
@@ -40,7 +39,7 @@ client.loop_start()                        #start the loop
 while Connected != True:    #Wait for connection
     time.sleep(0.1)
 
-client.subscribe("hd/status") # Change to subcribe topic 
+client.subscribe("hb/hd") # Change to subcribe topic 
 
 try:
     while True:

@@ -134,7 +134,9 @@ def main():
                 # msg = {'id': SEAT_NUMBER, 'timestamp': str(now), 'occStatus': OccupancyStatus.OccupancyStatus[status].value}
                 # msg = json.dumps(msg)
                 msg = "['" + str(SEAT_NUMBER) +"','" + str(now) + "','" + str(OccupancyStatus.OccupancyStatus[status].value) + "']"
-                print(msg)
+                with open("actuations.txt","a") as log:
+                    log.write(msg + "\n")
+                # print(msg)
                 client.publish("hd/status", msg)
                 print("Data sent")
                 msg = ""

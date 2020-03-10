@@ -84,3 +84,32 @@ def insert_hd_details(hd_id,hd_ts,hd_status):
         if (conn):
             cursor.close()
             connection.close()
+
+def update_hd_hb(t_id, timestamp):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        update_query = """
+        UPDATE heartbeat SET timestamp = (%s) WHERE id = (%s)
+        """
+
+        to_insert = (timestamp, t_id)
+
+        cursor.execute(update_query,to_insert)
+        conn.commit()
+        
+        f = open("successful.txt","a")
+        f.write("\n Successful updating heartbeat @ " + str(datetime.datetime.now()))
+        f.close()
+        
+    except (Exception, psycopg2.Error) as error:
+        print(str(error))
+        f = open("error.txt","a")
+        f.write("\n Error updating heartbeat @ " + str(datetime.datetime.now()))
+        f.close()
+            
+    finally:
+        if (conn):
+            cursor.close()
+            connection.close()        
