@@ -40,7 +40,7 @@ def main():
     # Admin attributes
     SEAT_NUMBER = 4
     start_time = datetime.now()
-    heartbeat_delta = timedelta(minutes=15)
+    heartbeat_delta = timedelta(minutes=5)
 
     # Capacitive Sensor Setup
     CHANNEL_NUM = 11
@@ -51,6 +51,7 @@ def main():
     mpr121.set_threshold(0x60)
     mpr121.wait_for_ready()
     readings = np.array([])
+    minimum_readings = 50
     window = 50
     status = "Unoccupied"
     change = False
@@ -63,13 +64,14 @@ def main():
     grovepi.pinMode(led_port, "OUTPUT")
     last_motion = datetime.now()
     max_delta = timedelta(seconds=3)
-    # max_delta = timedelta(hours=2)
+    #max_delta = timedelta(hours=2)
 
+    time.sleep(5)
     #MQTT Client setup
-    client = mqtt.Client(client_id="T5")
+    client = mqtt.Client(client_id="T5-2")
     client.username_pw_set(username="iotcollabhuat", password="iott1t5")
     client.connect("18.141.11.6")
-    # client.publish("test", "randylovesyellow")
+    heartbeat.send_heartbeat(client, SEAT_NUMBER)
 
     print("Starting monitoring")
     while True:
@@ -80,8 +82,10 @@ def main():
             if (now - start_time) >= heartbeat_delta:
                 heartbeat.send_heartbeat(client, SEAT_NUMBER)
                 start_time = now
-            # Capacitive logic
+                client.reconnect()
+                #print("Client reconnect")
 
+            # Capacitive logic
             readings_arr = mpr121.listen_sensor_status()
             r = readings_arr[CHANNEL_NUM]
             # Add newest reading to array
@@ -92,12 +96,12 @@ def main():
 
             # Remove oldest reading
             readings = np.delete(readings, 0)
-            # print(readings)
+            print(readings)
             
             # Get mean and standard deviation
             average = np.mean(readings)
             sd = np.std(readings)
-            # print(average)
+            print(average)
             # print(sd)
             # If std. deviation > threshold, means change in state
             # if sd >= SD_THRESHOLD:
@@ -124,7 +128,7 @@ def main():
             if time_difference >= max_delta and status != "Unoccupied":
                 status = "Hogged"
                 
-            # print(status)
+            print(status)
             # print(original_status)
 
             if status != original_status:
@@ -134,9 +138,10 @@ def main():
                 # msg = {'id': SEAT_NUMBER, 'timestamp': str(now), 'occStatus': OccupancyStatus.OccupancyStatus[status].value}
                 # msg = json.dumps(msg)
                 msg = "['" + str(SEAT_NUMBER) +"','" + str(now) + "','" + str(OccupancyStatus.OccupancyStatus[status].value) + "']"
-                with open("actuations.txt","a") as log:
+                #print(msg)
+                with open("actuations.txt", "a") as log:
                     log.write(msg + "\n")
-                # print(msg)
+                client.reconnect()
                 client.publish("hd/status", msg)
                 print("Data sent")
                 msg = ""
