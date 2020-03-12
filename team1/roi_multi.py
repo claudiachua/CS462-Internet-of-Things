@@ -5,9 +5,8 @@ sys.path.insert(0, "build/lib.linux-armv7l-2.7/")
 
 import VL53L1X
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from mqtt_conn import *
-import threading
 
 import time
 import socket
@@ -15,7 +14,6 @@ import socket
 # for heartbeat
 import heartbeat
 import paho.mqtt.client as mqtt
-
 
 def is_connected():
         try:
@@ -31,7 +29,7 @@ while not is_connected():
     time.sleep(5)
 
 print("Network Connected!")
-client = create_client()
+client = create_client("roi_team5")
 
 tof = VL53L1X.VL53L1X(i2c_bus=1, i2c_address=0x29)
 print("Python: Initialized")
@@ -94,8 +92,7 @@ def tof_readings():
 
 
     while True:
-
-        now = datetime.now()
+	now = datetime.now()
         # Heartbeat logic
         if (now - start_time) >= heartbeat_delta:
             heartbeat.send_heartbeat(client, "E_TOF")
@@ -144,14 +141,16 @@ def tof_readings():
             readings.append(curr_reading)
             i = 1
             prev_reading = [0,0]
-            process_thread = threading.Thread(target=counting, args=[readings])
-            process_thread.start()
+            #process_thread = threading.Thread(target=counting, args=[readings])
+            #process_thread.start()
+	    counting(readings)
             readings = []
 
 def counting(process_readings):
 
         # print(process_readings)
-
+	global client
+	client.reconnect()
         if len(process_readings) < 3:
             return
 
