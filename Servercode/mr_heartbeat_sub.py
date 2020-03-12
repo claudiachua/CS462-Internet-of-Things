@@ -20,7 +20,7 @@ def on_message(client, userdata, message):
     msg_list = ast.literal_eval(msg)
     t_id = msg_list[0]
     ts = msg_list[1]
-    update_hd_mr(t_id, ts)
+    update_hd_hb(t_id, ts)
 
 Connected = False #global variable for the state of the connection
 
