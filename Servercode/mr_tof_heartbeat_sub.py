@@ -39,7 +39,7 @@ client.loop_start()                        #start the loop
 while Connected != True:    #Wait for connection
     time.sleep(0.1)
 
-client.subscribe("hb/mr") # Change to subcribe topic
+client.subscribe("hmr/tof/hearbeat") # Change to subcribe topic
 
 try:
     while True:
