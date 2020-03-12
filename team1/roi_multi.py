@@ -12,6 +12,11 @@ import threading
 import time
 import socket
 
+# for heartbeat
+import heartbeat
+import paho.mqtt.client as mqtt
+
+
 def is_connected():
         try:
             # connect to the host -- tells us if the host is actually
@@ -64,6 +69,16 @@ def insideDistance(lower,upper):
 
 def tof_readings():
 
+    # for heartbeat
+    start_time = datetime.now()
+    heartbeat_delta = timedelta(minutes=15)
+
+    #MQTT Client setup
+    client = mqtt.Client(client_id="T1_TOF")
+    client.username_pw_set(username="iotcollabhuat", password="iott1t5")
+    client.connect("18.141.11.6")
+    # client.publish("test", "randylovesyellow")
+
     global readings
 
     lowerThreshold = 300
@@ -79,6 +94,13 @@ def tof_readings():
 
 
     while True:
+
+        now = datetime.now()
+        # Heartbeat logic
+        if (now - start_time) >= heartbeat_delta:
+            heartbeat.send_heartbeat(client, "E_TOF")
+            start_time = now
+
         curr_reading = [0,0] #inside, outside
 
         if status:
