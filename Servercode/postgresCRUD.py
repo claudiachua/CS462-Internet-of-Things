@@ -1,6 +1,7 @@
 import psycopg2
 import datetime
 import logging
+from datetime import timedelta
 
 def get_connection():
     return psycopg2.connect(user="mqttuser", password="iott1t5", host="127.0.0.1", port="5432", database="R77_OCCUPANCY")
@@ -83,7 +84,7 @@ def insert_hd_details(hd_id,hd_ts,hd_status):
             cursor.close()
             connection.close()
 
-def update_hd_hb(t_id, timestamp):
+def update_hd_hb(t_id, status):
     try:
         conn = get_connection()
         cursor = conn.cursor()
@@ -108,3 +109,10 @@ def update_hd_hb(t_id, timestamp):
         if (conn):
             cursor.close()
             connection.close()        
+            
+def update_motion_hc(status):
+    timestamp = str(datetime.datetime.now() + timedelta(hours=8))
+    
+    logging.basicConfig(level=logging.INFO, filename='motion_hc_insert.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+    logging.info(status + timstamp)
+             
