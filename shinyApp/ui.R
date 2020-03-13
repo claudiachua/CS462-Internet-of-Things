@@ -21,7 +21,7 @@ library(DT)
 ###########################################################################################
 # Define UI for application
 ui <- dashboardPage(
-  dashboardHeader(title = "R77 Utility Heatmap", inverted = TRUE),
+  dashboardHeader(title = "R77 Utility Heatmap"),
   dashboardSidebar(
     sidebarMenu(
       menuItem(tabName = "heatmap", "Heatmap")
@@ -33,10 +33,21 @@ ui <- dashboardPage(
       tabItem(
         tabName = "heatmap",
         fluidRow(
-          column(width = 16,
-              title = "R77 Real-Time Occupancy",
-              color = "black", ribbon = FALSE, title_side = "top", collapsible = FALSE,
-              plotOutput("heatmap")
+          column(width = 14,
+              box(
+                title = "R77 Real-Time Occupancy",
+                color = "black", ribbon = FALSE, title_side = "top", collapsible = FALSE,
+                plotOutput("heatmap")
+              )
+          )
+        ),
+        fluidRow(
+          column(width = 14,
+                 box(
+                   title = "Meeting Room Headcount",
+                   color = "black", ribbon = FALSE, title_side = "top", collapsible = FALSE,
+                   valueBoxOutput("mrcount", width = 8)
+                 )
           )
         )
       )

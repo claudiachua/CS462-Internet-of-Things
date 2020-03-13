@@ -67,7 +67,7 @@ def write_error():
 pir_sensor = 2
 motion=0
 grovepi.pinMode(pir_sensor,"INPUT")
-client = create_client()
+client = create_client("grp5_motion")
 motion_counter = 0
 time_in_sec = 0
 

@@ -1,6 +1,7 @@
 import psycopg2
 import datetime
 import logging
+from datetime import timedelta
 
 def get_connection():
     return psycopg2.connect(user="mqttuser", password="iott1t5", host="127.0.0.1", port="5432", database="R77_OCCUPANCY")
@@ -17,11 +18,11 @@ def insert_motion_details(mr_id,mr_ts,mr_status):
         cursor.execute(insert_query,to_insert)
         conn.commit()
         
-        logging.basicConfig(filename='mr_motion_db_insert.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+        logging.basicConfig(level=logging.INFO, filename='mr_motion_db_insert.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
         logging.info("mr motion data inserted successfully at " + str(datetime.datetime.now()))
         
     except (Exception, psycopg2.Error) as error:
-        logging.basicConfig(filename='mr_motion_err.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+        logging.basicConfig(level=logging.DEBUG, filename='mr_motion_err.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
         logging.error("Error inserting mr tof data at "  + str(datetime.datetime.now()))
             
     finally:
@@ -47,11 +48,11 @@ def insert_tof_details(mr_id,mr_ts,mr_count):
         cursor.execute(insert_query,to_insert)
         conn.commit()
         
-        logging.basicConfig(filename='mr_tof_db_insert.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+        logging.basicConfig(level=logging.INFO, filename='mr_tof_db_insert.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
         logging.info("mr tof data inserted successfully at "  + str(datetime.datetime.now()))
         
     except (Exception, psycopg2.Error) as error:
-        logging.basicConfig(filename='mr_tof_err.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+        logging.basicConfig(level=logging.DEBUG, filename='mr_tof_err.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
         logging.error("Error inserting mr tof data at " + str(datetime.datetime.now()))
             
     finally:
@@ -71,11 +72,11 @@ def insert_hd_details(hd_id,hd_ts,hd_status):
         cursor.execute(insert_query,to_insert)
         conn.commit()
         
-        logging.basicConfig(filename='hd_db_insert.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+        logging.basicConfig(level=logging.INFO, filename='hd_db_insert.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
         logging.info("hd data inserted successfully into the database at "  + str(datetime.datetime.now()))
         
     except (Exception, psycopg2.Error) as error:
-        logging.basicConfig(filename='hd_err.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+        logging.basicConfig(level=logging.DEBUG, filename='hd_err.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
         logging.error("Error inserting hd data at "  + str(datetime.datetime.now()))
             
     finally:
@@ -83,7 +84,7 @@ def insert_hd_details(hd_id,hd_ts,hd_status):
             cursor.close()
             connection.close()
 
-def update_hd_hb(t_id, timestamp):
+def update_hd_hb(t_id, status):
     try:
         conn = get_connection()
         cursor = conn.cursor()
@@ -97,14 +98,21 @@ def update_hd_hb(t_id, timestamp):
         cursor.execute(update_query,to_insert)
         conn.commit()
         
-        logging.basicConfig(filename='hb_db_insert.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+        logging.basicConfig(level=logging.INFO, filename='hb_db_insert.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
         logging.info("hb data inserted successfully into the database at " + str(datetime.datetime.now()))
         
     except (Exception, psycopg2.Error) as error:
-        logging.basicConfig(filename='hb_err.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+        logging.basicConfig(level=logging.DEBUG, filename='hb_err.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
         logging.error("Error inserting hb data at " + str(datetime.datetime.now()))
             
     finally:
         if (conn):
             cursor.close()
             connection.close()        
+            
+def update_motion_hc(status):
+    timestamp = str(datetime.datetime.now() + timedelta(hours=8))
+    
+    logging.basicConfig(level=logging.INFO, filename='motion_hc_insert.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
+    logging.info(status + timstamp)
+             

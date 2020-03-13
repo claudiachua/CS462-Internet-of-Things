@@ -80,4 +80,19 @@ server <- function(input, output, session) {
       coord_equal() +
       scale_fill_manual(values = c("#D0E6A5", "#FFDD94", "#FA897B"),name= "Status", labels = c("Not In Use","Idle","In Use"))
   })
+  
+  mr_count <- reactive({
+    invalidateLater(2 * 1000, session)
+    connection_sqlInput <- 'select count from mr_count_hist order by mrcounttimestamp desc limit 1'
+    connection_data <- dbGetQuery(con, connection_sqlInput)
+  })
+  
+  output$mrcount <- renderValueBox({
+    valueBox(
+      value = mr_count(),
+      subtitle = "People in Meeting Room E",
+      color = "black",
+      size = "medium"
+    )
+  })
 }
