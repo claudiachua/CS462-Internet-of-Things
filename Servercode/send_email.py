@@ -6,8 +6,6 @@ from email.mime.text import MIMEText
 MY_ADDRESS = 'amos.lee.2016@sis.smu.edu.sg'
 PASSWORD = 'QHJtYTk0U211ODk='
 
-import datetime
-from datetime import datetime, timedelta
 from postgresCRUD import *
 
 import os
@@ -64,7 +62,8 @@ def send_email(id,timestamp):
     s = smtplib.SMTP(host='smtp.office365.com', port=587)
     s.starttls()
     s.login(MY_ADDRESS, decoder())  
-    to_address = ['randylai.2016@sis.s mu.edu.sg', 'chijao.foo.2016@sis.smu.edu.sg', 'Darren.gan.2017@sis.smu.edu.sg','amos.lee.2016@sis.smu.edu.sg','yankai.ong.2016@sis.smu.edu.sg']
+    to_address = ['randylai.2016@sis.smu.edu.sg', 'chijao.foo.2016@sis.smu.edu.sg', 'Darren.gan.2017@sis.smu.edu.sg','amos.lee.2016@sis.smu.edu.sg','yankai.ong.2016@sis.smu.edu.sg']
+    #to_address = ['amos.lee.2016@sis.smu.edu.sg']
     name = 'Alert'
 
     msg = MIMEMultipart()       # create a message
@@ -97,7 +96,7 @@ def send_email(id,timestamp):
     # Terminate the SMTP session and close the connection
     s.quit()
 
-hb_records = get_hb_status()
+    hb_records = get_hb_status()
 
 is_problem_list = []
 

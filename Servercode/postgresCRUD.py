@@ -1,7 +1,7 @@
 import psycopg2
 import datetime
 import logging
-from datetime import timedelta
+from datetime import timedelta,datetime
 
 def get_connection():
     return psycopg2.connect(user="mqttuser", password="iott1t5", host="127.0.0.1", port="5432", database="R77_OCCUPANCY")
