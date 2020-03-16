@@ -51,7 +51,8 @@ import time
 import grovepi
 import datetime
 from mqtt_conn import *
-import datetime
+from datetime import datetime, timedelta
+import heartbeat
 
 # Connect the Grove PIR Motion Sensor to digital port D8
 # NOTE: Some PIR sensors come with the SIG line connected to the yellow wire and some with the SIG line connected to the white wire.
@@ -64,15 +65,25 @@ def write_error():
     f.write("IOError detecting motion @ " + str(datetime.datetime.now()))
     f.close()
 
-pir_sensor = 2
+pir_sensor = 7
 motion=0
 grovepi.pinMode(pir_sensor,"INPUT")
 client = create_client("grp5_motion")
 motion_counter = 0
 time_in_sec = 0
+start_time = datetime.now()
+heartbeat_delta = timedelta(minutes=1)
+curr_reading = 0
+prev_reading = 0
+no_motion_count = 0
 
 while True:
     print("Start detecting")
+    heartbeat_check = datetime.now()
+    if (heartbeat_check - start_time) >= heartbeat_delta:
+        heartbeat.send_heartbeat(client, "E_Motion")
+        start_time = heartbeat_check
+
     try:
         # Sense motion, usually human, within the target range
         print("Motion Counter",str(motion_counter))
@@ -88,17 +99,27 @@ while True:
             write_error()
             # if your hold time is less than this, you might not see as many detections
         time.sleep(1)
-        if time_in_sec==10:
+        if time_in_sec==60:
             time_in_sec=0
-            now = str(datetime.datetime.now())
+            now = str(datetime.now())
             if  motion_counter>=2:
+                no_motion_count = 0
+                curr_reading = 2
                     #send to topic
                 msg = "['E','" + now + "','2']"
+                if curr_reading != prev_reading:    
+                    publish_motion_results(client,msg)
+                    print("Data sent")
             else:
-                msg = "['E','" + now + "',''0]"
-                
-            publish_motion_results(client,msg)
-            print("Data sent")
+                no_motion_count += 1
+                curr_reading = 0
+                if no_motion_count >= 5:
+                    msg = "['E','" + now + "','0']"
+                    no_motion_count = 0      
+                    publish_motion_results(client,msg)
+                    print("Data sent")
+            print(no_motion_count)
+            prev_reading = curr_reading
             motion_counter = 0
     except IOError:
         write_error()
