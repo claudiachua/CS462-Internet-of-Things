@@ -93,6 +93,16 @@ def main():
             # If less than required window of readings, continue taking
             if len(readings) < window:
                 continue
+            # This else-if calibrates the baseline to either 2 SDs below or a fixed amount slightly lower
+            # If an item is on the table when this is run, the empty baseline will be calibrated too low
+            elif len(readings) == window:
+                # Reset the desk status back to unoccupied
+                client.reconnect()
+                msg = "['" + str(SEAT_NUMBER) +"','" + str(now) + "','" + str(0) + "']"
+                client.publish("hd/status", msg)
+                # EMPTY_THRESHOLD = np.mean(readings) - np.std(readings) * 2
+                EMPTY_THRESHOLD = np.mean(readings) - 3
+                continue
 
             # Remove oldest reading
             readings = np.delete(readings, 0)
