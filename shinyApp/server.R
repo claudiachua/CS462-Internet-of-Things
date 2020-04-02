@@ -87,12 +87,189 @@ server <- function(input, output, session) {
     connection_data <- dbGetQuery(con, connection_sqlInput)
   })
   
-  output$mrcount <- renderValueBox({
+  output$Acount <- renderValueBox({
+    valueBox(
+      value = 6,
+      subtitle = "Meeting Room A",
+      color = "black",
+      size = "tiny"
+    )
+  })
+  
+  output$Bcount <- renderValueBox({
+    valueBox(
+      value = 0,
+      subtitle = "Meeting Room B",
+      color = "black",
+      size = "tiny"
+    )
+  })
+  
+  output$Ccount <- renderValueBox({
+    valueBox(
+      value = 3,
+      subtitle = "Meeting Room C",
+      color = "black",
+      size = "tiny"
+    )
+  })
+  
+  output$Dcount <- renderValueBox({
+    valueBox(
+      value = 0,
+      subtitle = "Meeting Room D",
+      color = "black",
+      size = "tiny"
+    )
+  })
+  
+  output$Ecount <- renderValueBox({
     valueBox(
       value = mr_count(),
-      subtitle = "People in Meeting Room E",
+      subtitle = "Meeting Room E",
       color = "black",
-      size = "medium"
+      size = "tiny"
     )
+  })
+  
+  output$Fcount <- renderValueBox({
+    valueBox(
+      value = 0,
+      subtitle = "Meeting Room F",
+      color = "black",
+      size = "tiny"
+    )
+  })
+  
+  output$Gcount <- renderValueBox({
+    valueBox(
+      value = 0,
+      subtitle = "Meeting Room G",
+      color = "black",
+      size = "tiny"
+    )
+  })
+  
+  output$Hcount <- renderValueBox({
+    valueBox(
+      value = 0,
+      subtitle = "Meeting Room H",
+      color = "black",
+      size = "tiny"
+    )
+  })
+  
+  output$Fcount <- renderValueBox({
+    valueBox(
+      value = 0,
+      subtitle = "Meeting Room F",
+      color = "black",
+      size = "tiny"
+    )
+  })
+  
+  output$Gcount <- renderValueBox({
+    valueBox(
+      value = 0,
+      subtitle = "Meeting Room G",
+      color = "black",
+      size = "tiny"
+    )
+  })
+  
+  hd4_status <- reactive({
+    invalidateLater(2 * 1000, session)
+    connection_sqlInput <- "select occstatus from hd_occ_hist where hotdeskid = '4' order by hdocctimestamp desc limit 1"
+    connection_data <- dbGetQuery(con, connection_sqlInput)
+  })
+  
+  hd5_status <- reactive({
+    invalidateLater(2 * 1000, session)
+    connection_sqlInput <- "select occstatus from hd_occ_hist where hotdeskid = '5' order by hdocctimestamp desc limit 1"
+    connection_data <- dbGetQuery(con, connection_sqlInput)
+  })
+  
+  hdfree <- reactive({
+    free <- 0
+    
+    if(hd4_status()==0){
+      free <- free + 1
+    }
+    
+    if(hd5_status()==0){
+      free <- free + 1
+    }
+  })
+  
+  hdidle <- reactive({
+    idle <- 0
+    
+    if(hd4_status()==1){
+      idle <- idle + 1
+    }
+    
+    if(hd5_status()==1){
+      idle <- idle + 1
+    }
+  })
+
+  hdused <- reactive({
+    used <- 0
+    
+    if(hd4_status()==2){
+      used <- used + 1
+    }
+    
+    if(hd5_status()==2){
+      used <- used + 1
+    }
+  })
+  
+  output$rtHDfree <- renderValueBox({
+    valueBox(
+      value = 8,# + hdfree(),
+      subtitle = "Not In Use",
+      color = "green",
+      size = "tiny"
+    )
+  })
+  
+  output$rtHDidle <- renderValueBox({
+    valueBox(
+      value = 3,# + hdidle(),
+      subtitle = "Idle",
+      color = "yellow",
+      size = "tiny"
+    )
+  })
+  
+  output$rtHDused <- renderValueBox({
+    valueBox(
+      value = 13,# + hdused(),
+      subtitle = "In Use",
+      color = "red",
+      size = "tiny"
+    )
+  })
+  
+  monthHDData <- read.csv("monthHD.csv")
+  output$monthHD <- renderPlot({
+    ggplot(data=monthHDData, aes(x=Day, y=Occupancy)) +
+      geom_hline(yintercept = 70, aes(colour="blue")) +
+      geom_line() +
+      geom_point()
+  })
+  
+  monthMRData <- read.csv("monthMR.csv")
+  mr_selected_data <- reactive({
+    monthMRData %>%
+      filter(id == input$mr_selected)
+  })
+  
+  output$monthMR <- renderPlot({
+    ggplot(data=mr_selected_data(), aes(x=day, y=hours)) +
+      geom_line() +
+      geom_point() +
+      ylim(low=0,high=10)
   })
 }
