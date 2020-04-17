@@ -125,7 +125,7 @@ server <- function(input, output, session) {
   
   output$Ecount <- renderValueBox({
     valueBox(
-      value = mr_count(),
+      value = 2,
       subtitle = "Meeting Room E",
       color = "black",
       size = "tiny"
@@ -227,7 +227,7 @@ server <- function(input, output, session) {
   
   output$rtHDfree <- renderValueBox({
     valueBox(
-      value = 8,# + hdfree(),
+      value = 5,# + hdfree(),
       subtitle = "Not In Use",
       color = "green",
       size = "tiny"
@@ -236,7 +236,7 @@ server <- function(input, output, session) {
   
   output$rtHDidle <- renderValueBox({
     valueBox(
-      value = 3,# + hdidle(),
+      value = 1,# + hdidle(),
       subtitle = "Idle",
       color = "yellow",
       size = "tiny"
@@ -245,7 +245,7 @@ server <- function(input, output, session) {
   
   output$rtHDused <- renderValueBox({
     valueBox(
-      value = 13,# + hdused(),
+      value = 2,# + hdused(),
       subtitle = "In Use",
       color = "red",
       size = "tiny"
@@ -271,5 +271,46 @@ server <- function(input, output, session) {
       geom_line() +
       geom_point() +
       ylim(low=0,high=10)
+  })
+  
+  hotddesk1 <- read.csv("hotdesk.csv")
+  hotddesk1$Weekday <- factor(hotddesk1$Weekday, levels=c('Friday','Thursday','Wednesday','Tuesday','Monday'))
+  output$weekHD <- renderPlot({
+    ggplot(hotddesk1, aes(fill=Status, y=Utility, x=Weekday, label = Utility)) + 
+      geom_bar(stat="identity") +
+      coord_flip() +
+      scale_fill_manual(values = c("#D0E6A5", "#FFDD94", "#FA897B"),name= "Status", labels = c("Available","Hogged","Occupied"))
+  })
+  
+  hotddesk2 <- read.csv("hdoccupancy.csv")
+  hotddesk2$Time <- factor(hotddesk2$Time)
+  hotddesk2$Weekday <- factor(hotddesk2$Weekday, levels=c('Monday','Tuesday','Wednesday','Thursday','Friday'))
+  
+  output$weekHD2 <- renderPlot({
+    ggplot(hotddesk2, aes(x=Time, y=Utility,label = Utility))+
+      geom_bar(stat='identity', fill = "#FA897B")+
+      facet_wrap(~Weekday,  ncol=1) +
+      theme(axis.text.y=element_blank(),
+            axis.ticks.y=element_blank())
+  })
+  
+  
+  meeting1 <- read.csv("mrutility.csv")
+  meeting1$Weekday <- factor(meeting1$Weekday, levels=c('Friday','Thursday','Wednesday','Tuesday','Monday'))
+  
+  output$weekMR1 <- renderPlot({
+    ggplot(meeting1, aes(fill=Status, y=Utility, x=Weekday, label = Utility)) + 
+      geom_bar(stat="identity") +
+      coord_flip() +
+      scale_fill_manual(values = c("#D0E6A5", "#FA897B"),name= "Status", labels = c("Available","Occupied"))
+  })
+  
+  meeting2 <- read.csv("meetingroom.csv")
+  meeting2$Number <- factor(meeting2$Number, levels=c('1','2','3','4','5','6'))
+  
+  output$weekMR2 <- renderPlot({
+    ggplot(meeting2, aes(x=Number, y=Frequency))+
+      geom_bar(stat='identity', fill = "#FA897B") +
+      labs(x = "Number of People")
   })
 }

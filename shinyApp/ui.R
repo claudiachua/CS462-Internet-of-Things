@@ -78,9 +78,15 @@ ui <- dashboardPage(
         fluidRow(
           column(width = 14,
                  box(
-                   title = "Daily Utility in the Last 30 Days",
+                   title = "Overall Table Occupancy in the Last Week",
                    color = "black", ribbon = FALSE, title_side = "top", collapsible = FALSE,
-                   plotOutput("monthHD")
+                   plotOutput("weekHD", height = "200px")
+                 ),
+                 br(),
+                 box(
+                   title = "Hourly Table Occupancy in the Last Week",
+                   color = "black", ribbon = FALSE, title_side = "top", collapsible = FALSE,
+                   plotOutput("weekHD2",height = "300px")
                  )
           )
         )
@@ -94,10 +100,17 @@ ui <- dashboardPage(
         ),
         fluidRow(
           column(width = 14,
-          box(width = 16,
-              title = "Daily Utility in the Last 30 Days",
-              color = "black", ribbon = FALSE, title_side = "top", collapsible = FALSE,
-              plotOutput("monthMR")))
+                 box(
+                   title = "Overall Meeting Room Occupancy in the Last Week",
+                   color = "black", ribbon = FALSE, title_side = "top", collapsible = FALSE,
+                   plotOutput("weekMR1", height = "200px")
+                 ),
+                 br(),
+                 box(
+                   title = "Number of People in Meeting Room in the Last Week",
+                   color = "black", ribbon = FALSE, title_side = "top", collapsible = FALSE,
+                   plotOutput("weekMR2",height = "300px")
+                 ))
         )
       )
     )
