@@ -1,3 +1,5 @@
 # iot
-IOT Project
-PeiXuan Please do your work regularly
+CS462 - IoT Applications
+
+An IoT prototype to promote open office usage efficiencies
+
