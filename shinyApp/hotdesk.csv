@@ -1,0 +1,16 @@
+﻿Weekday,Status,Utility
+Monday,Occupied,1.58
+Monday,Hogged,0
+Monday,Available,98.42
+Tuesday,Occupied,11.16
+Tuesday,Hogged,30.92
+Tuesday,Available,57.92
+Wednesday,Occupied,2.18
+Wednesday,Hogged,42.58
+Wednesday,Available,55.24
+Thursday,Occupied,25.55
+Thursday,Hogged,10
+Thursday,Available,64.45
+Friday,Occupied,0.75
+Friday,Hogged,0
+Friday,Available,99.25
